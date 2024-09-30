@@ -1,0 +1,94 @@
+---
+title: "Reconocimiento de Palabras"
+description: "Mini proyecto de funcionalidades basicas para nuestra aplicacion de LIT."
+---
+
+<div id="p5-sketch">
+  <div id="canvas-container"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
+
+<script>
+(function() {
+  const sketch = (p) => {
+    let classifier;
+    let label = 'esperando...';
+    let modelURL = 'https://teachablemachine.withgoogle.com/models/U0i3PC3vNP/'; // URL del modelo de Teachable Machine
+    let words = [
+      "Algorithm",
+      "Compiler",
+      "Database",
+      "Encryption"
+    ];
+    let predictedWord = "";
+    let confidenceThreshold = 0.95; // Umbral de confianza del 95%
+
+    p.preload = function() {
+      // Cargar el modelo de clasificación de audio
+      classifier = ml5.soundClassifier(modelURL + 'model.json');
+    }
+
+    p.setup = function() {
+      p.createCanvas(650, 450).parent('canvas-container');
+      
+      // Iniciar la clasificación de audio
+      p.classifyAudio();
+    }
+
+    p.draw = function() {
+      p.background(250);
+
+      // Mostrar las palabras que se pueden reconocer
+      p.displayWords();
+
+      // Mostrar la última palabra reconocida si existe
+      if (predictedWord !== "") {
+        p.fill(211, 107, 255);
+        p.textAlign(p.CENTER, p.CENTER);
+        p.textSize(64);
+        p.text(predictedWord, p.width / 2, 90);
+      }
+    }
+
+    // Mostrar las palabras en el canvas
+    p.displayWords = function() {
+      p.textAlign(p.CENTER, p.CENTER);
+      p.textSize(32);
+      p.fill(96);
+      p.text("¡Di una de estas palabras!", p.width / 2, 40);
+
+      let x = 125;
+      let y = 150;
+
+      // Mostrar las palabras en una columna
+      for (let i = 0; i < words.length; i++) {
+        p.fill(158);
+        p.text(words[i], x, y);
+        y += 50;
+      }
+    }
+
+    // Clasificación del audio
+    p.classifyAudio = function() {
+      classifier.classify(p.gotResults);
+    }
+
+    // Obtener los resultados de la clasificación
+    p.gotResults = function(error, results) {
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      // Verificar si la confianza supera el umbral y no es ruido de fondo
+      if (results[0].confidence >= confidenceThreshold && words.includes(results[0].label)) {
+        predictedWord = results[0].label;
+      }
+    }
+  };
+
+  new p5(sketch);
+})();
+</script>

@@ -1,0 +1,12 @@
+website:
+  sidebar:
+    contents:
+      - index.qmd
+      - section: ejemplo_juego
+        contents:
+          - ejemplo_juego\01_juego_dinosaurio.qmd    
+      - section: proyecto_lit
+        contents:
+          - proyecto_lit\00_intro.qmd
+          - proyecto_lit\01_aplitaction.qmd
+

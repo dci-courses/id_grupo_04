@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "id_grupo_04"
+  site-url: "https://dci-courses.github.io/id_grupo_04"
+  description: "Repositorio del grupo 04 que recolecta el contenido de Ingeniería de Datos y lo presenta en una página web usando nbdev."
+  repo-branch: main
+  repo-url: "https://github.com/dci-courses/id_grupo_04"

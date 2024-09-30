@@ -1,0 +1,185 @@
+---
+title: "Juego de Dinosaurio"
+description: "Ejemplo de juego con clasificación de gestos utilizando p5.js y Teachable Machine, muestra tu palma y escondela para jugar"
+---
+
+<div id="p5-sketch">
+  <div id="canvas-container"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.sound.min.js"></script>
+<script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
+
+<script>
+(function() {
+  const sketch = (p) => {
+    let video;
+    let classifier;
+    let label = 'esperando...';
+    let modelURL = 'https://teachablemachine.withgoogle.com/models/msCFPSSjY/';
+    
+    // Dinosaurio y juego
+    let y = 0;
+    let velocity = 0;
+    let gravity = 1.5;
+    let lift = -20;
+    let obstacles = [];
+    let obstacleSpeed = 6;
+    let gameStarted = false;
+    let gameOver = false;
+    let startTime;
+    let elapsedTime = 0;
+
+    // Cargar el modelo
+    p.preload = function() {
+      classifier = ml5.imageClassifier(modelURL);
+    }
+
+    p.setup = function() {
+      p.createCanvas(640, 520).parent('canvas-container');
+      
+      // Crear el video
+      video = p.createCapture(p.VIDEO);
+      video.hide();
+
+      // Iniciar la clasificación
+      p.classifyVideo();
+
+      // Inicializar la posición del dinosaurio
+      y = p.height - 50; // Altura inicial del dinosaurio
+    }
+
+    p.draw = function() {
+      p.background(0);
+      
+      // Dibujar el video
+      p.image(video, 0, 0);
+
+      if (!gameStarted) {
+        p.textSize(50);
+        p.textAlign(p.CENTER, p.CENTER);
+        p.fill(255);
+        p.text("Levanta tu mano para comenzar", p.width / 2, p.height / 2);
+        return;
+      }
+
+      if (gameOver) {
+        p.textSize(50);
+        p.textAlign(p.CENTER, p.CENTER);
+        p.fill(255, 0, 0);
+        p.text("Game Over", p.width / 2, p.height / 2 - 50);
+        p.textSize(30);
+        p.text("Tiempo sobrevivido: " + elapsedTime + "s", p.width / 2, p.height / 2 + 20);
+        p.text("Levanta tu mano para reiniciar", p.width / 2, p.height / 2 + 70);
+        return;
+      }
+
+      // Dibujar el dinosaurio
+      p.fill(255, 255, 255);
+      p.rect(50, y, 50, 50);
+
+      // Gravedad y movimiento
+      y += velocity;
+      velocity += gravity;
+      
+      // Limitar al suelo
+      if (y > p.height - 50) {
+        y = p.height - 50;
+        velocity = 0;
+      }
+      
+      // Manejar obstáculos
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        obstacles[i].move();
+        obstacles[i].show();
+
+        // Verificar colisión con el dinosaurio
+        if (obstacles[i].hits()) {
+          gameOver = true;
+          elapsedTime = Math.floor((p.millis() - startTime) / 1000);
+          return;
+        }
+
+        // Eliminar obstáculos que salen de la pantalla
+        if (obstacles[i].offscreen()) {
+          obstacles.splice(i, 1);
+        }
+      }
+
+      // Generar nuevos obstáculos
+      if (p.frameCount % 60 === 0) {
+        obstacles.push(new p.Obstacle());
+      }
+    }
+
+    // Función para el salto
+    p.jump = function() {
+      velocity = lift;
+    }
+
+    // Clasificación del video
+    p.classifyVideo = function() {
+      classifier.classify(video, p.gotResults);
+    }
+
+    // Obtener los resultados de la clasificación
+    p.gotResults = function(error, results) {
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      label = results[0].label;
+
+      if (label === "Arriba") {
+        if (!gameStarted) {
+          gameStarted = true;
+          startTime = p.millis();
+        } else if (gameOver) {
+          gameOver = false;
+          obstacles = [];
+          y = p.height - 50;
+          startTime = p.millis();
+        } else if (y >= p.height - 50) {
+          p.jump();
+        }
+      }
+
+      // Continuar clasificando
+      p.classifyVideo();
+    }
+
+    // Clase Obstacle
+    p.Obstacle = function() {
+      this.w = 20;
+      this.h = 40;
+      this.x = p.width;
+      this.y = p.height - this.h;
+
+      this.show = function() {
+        p.fill(255, 0, 0);
+        p.rect(this.x, this.y, this.w, this.h);
+      }
+
+      this.move = function() {
+        this.x -= obstacleSpeed;
+      }
+
+      this.offscreen = function() {
+        return this.x < -this.w;
+      }
+
+      this.hits = function() {
+        return (50 < this.x + this.w &&
+                50 + 50 > this.x &&
+                y < this.y + this.h &&
+                y + 50 > this.y);
+      }
+    }
+  };
+
+  new p5(sketch);
+})();
+</script>

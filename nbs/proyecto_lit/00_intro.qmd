@@ -1,0 +1,21 @@
+---
+title: "Introducción nuestro proyecto: Learn Informatic Things"
+description: Explicacion de que es nuestro proyecto y para que sirve
+sidebar_position: 2
+---
+
+## Descripción del Problema
+
+En el ámbito de la ingeniería informática, un dominio adecuado del idioma inglés es esencial para acceder a oportunidades laborales, especialmente en el contexto internacional. La habilidad para comprender y comunicarse en inglés no solo abre puertas a proyectos globales, sino que también es fundamental para la colaboración efectiva en equipos multiculturales y para la comprensión de documentación técnica que, en su mayoría, está disponible en este idioma.
+
+Sin embargo, uno de los mayores desafíos que enfrentan los ingenieros informáticos no nativos de habla inglesa es la pronunciación correcta de términos técnicos y palabras clave en inglés. Una pronunciación deficiente puede llevar a malentendidos y afectar la percepción de competencia profesional, lo que, a su vez, podría limitar sus oportunidades de crecimiento y desarrollo en el extranjero.
+
+![Imagen de referencia](images/ejemplo.png){width=50% .center}
+
+## Propuesta de Solución
+
+Ante esta problemática, nuestro grupo ha decidido desarrollar un modelo de aprendizaje enfocado en la enseñanza y perfeccionamiento de la pronunciación de palabras clave en inglés, específicamente diseñado para ingenieros informáticos. Este modelo no solo ayudará a mejorar la pronunciación, sino que también proporcionará retroalimentación instantánea, permitiendo a los usuarios identificar áreas de mejora y trabajar en ellas de manera efectiva.
+
+Nuestro objetivo es que, a través del uso de esta herramienta, los ingenieros puedan adquirir la confianza necesaria para comunicarse con precisión en inglés, mejorando así sus perspectivas profesionales y facilitando su integración en equipos de trabajo internacionales.
+
+![Papelografo hecho en clases](images/papelografo.jpeg){width=50% .center}

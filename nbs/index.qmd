@@ -1,0 +1,9 @@
+---
+title: "Bienvenido al Libro de Datos del Grupo 04"
+format: html
+---
+
+
+Este sitio web esta hecho por Roberto Illesca y Vicente Marquez, alumnos de cuarto año de ingenieria informatica dentro de la Universidad de la Frontera para la asignatura de ingenieria de datos.
+
+![Generada con Canva](dci.jpg){width=100% .center}
