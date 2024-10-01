@@ -1,10 +1,11 @@
 ---
-title: "Reconocimiento de Palabras"
-description: "Mini proyecto de funcionalidades basicas para nuestra aplicacion de LIT."
+title: "Juego de Reconocimiento de Palabras"
+description: "Mini proyecto de juego con reconocimiento de palabras usando p5.js y ml5.js"
 ---
 
 <div id="p5-sketch">
-  <div id="canvas-container"></div>
+  <div id="canvas-container" style="display: none;"></div>
+  <button id="start-button" style="padding: 10px 20px; font-size: 18px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">Empezar</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js"></script>
@@ -15,15 +16,21 @@ description: "Mini proyecto de funcionalidades basicas para nuestra aplicacion d
   const sketch = (p) => {
     let classifier;
     let label = 'esperando...';
-    let modelURL = 'https://teachablemachine.withgoogle.com/models/U0i3PC3vNP/'; // URL del modelo de Teachable Machine
+    let modelURL = 'https://teachablemachine.withgoogle.com/models/U0i3PC3vNP/';
     let words = [
-      "Algorithm",
       "Compiler",
       "Database",
-      "Encryption"
+      "Encryption",
+      "Algorithm"
     ];
+    let currentLevel = 0; // Nivel actual del jugador
+    let timeLeft = 30; // Tiempo restante en segundos
+    let confidenceThreshold = 0.90; // Umbral de confianza del 90%
     let predictedWord = "";
-    let confidenceThreshold = 0.95; // Umbral de confianza del 95%
+    let timerInterval; // Referencia al temporizador
+    let gameStarted = false; // Controla si el juego ha comenzado
+    let showCorrectWord = false; // Controla si se debe mostrar la palabra correcta
+    let correctWordTimer; // Controla el tiempo que la palabra correcta es visible
 
     p.preload = function() {
       // Cargar el modelo de clasificación de audio
@@ -32,47 +39,99 @@ description: "Mini proyecto de funcionalidades basicas para nuestra aplicacion d
 
     p.setup = function() {
       p.createCanvas(650, 450).parent('canvas-container');
-      
-      // Iniciar la clasificación de audio
-      p.classifyAudio();
+      // Esconder el canvas hasta que comience el juego
+      p.noLoop();
+      document.getElementById('start-button').addEventListener('click', p.startGame);
     }
 
     p.draw = function() {
       p.background(250);
 
-      // Mostrar las palabras que se pueden reconocer
-      p.displayWords();
+      // Mostrar el estado del juego: Nivel y tiempo restante
+      p.displayGameState();
 
-      // Mostrar la última palabra reconocida si existe
-      if (predictedWord !== "") {
-        p.fill(211, 107, 255);
+      // Mostrar la palabra correcta en verde brevemente
+      if (showCorrectWord && predictedWord !== "") {
+        p.fill(0, 255, 0); // Color verde
         p.textAlign(p.CENTER, p.CENTER);
         p.textSize(64);
         p.text(predictedWord, p.width / 2, 90);
       }
+
+      // Mostrar la palabra del nivel actual si no se está mostrando la palabra correcta
+      if (!showCorrectWord) {
+        p.displayWords();
+      }
     }
 
-    // Mostrar las palabras en el canvas
+    // Mostrar el estado del juego (nivel y tiempo restante)
+    p.displayGameState = function() {
+      p.fill(0);
+      p.textAlign(p.LEFT, p.TOP);
+      p.textSize(24);
+      p.text(`Nivel: ${currentLevel + 1}`, 10, 10);
+      p.text(`Tiempo restante: ${timeLeft} segundos`, 10, 40);
+    }
+
+    // Mostrar las palabras por nivel
     p.displayWords = function() {
       p.textAlign(p.CENTER, p.CENTER);
       p.textSize(32);
       p.fill(96);
-      p.text("¡Di una de estas palabras!", p.width / 2, 40);
+      p.text("¡Di la palabra correcta!", p.width / 2, 150);
 
-      let x = 125;
-      let y = 150;
+      let x = p.width / 2;
+      let y = 200;
 
-      // Mostrar las palabras en una columna
-      for (let i = 0; i < words.length; i++) {
-        p.fill(158);
-        p.text(words[i], x, y);
-        y += 50;
-      }
+      // Mostrar solo la palabra del nivel actual
+      p.fill(158);
+      p.text(words[currentLevel], x, y);
+    }
+
+    // Iniciar el juego
+    p.startGame = function() {
+      gameStarted = true;
+      document.getElementById('start-button').style.display = 'none'; // Esconder el botón
+      document.getElementById('canvas-container').style.display = 'block'; // Mostrar el canvas
+      p.classifyAudio();
+      p.startTimer();
+      p.loop(); // Comenzar a dibujar el canvas
     }
 
     // Clasificación del audio
     p.classifyAudio = function() {
       classifier.classify(p.gotResults);
+    }
+
+    // Temporizador de 30 segundos
+    p.startTimer = function() {
+      timeLeft = 30; // Reiniciar el tiempo a 30 segundos
+
+      // Limpiar cualquier temporizador previo
+      clearInterval(timerInterval);
+
+      // Iniciar un nuevo intervalo que se ejecuta cada segundo
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          alert("Se acabó el tiempo. El juego se reiniciará.");
+          p.resetGame();
+        }
+      }, 1000); // Cada segundo
+    }
+
+    // Reiniciar el juego
+    p.resetGame = function() {
+      currentLevel = 0;
+      predictedWord = "";
+      clearInterval(timerInterval); // Detener el temporizador
+      clearTimeout(correctWordTimer); // Detener el temporizador de la palabra correcta
+      p.noLoop(); // Detener el dibujo del canvas
+      gameStarted = false;
+      showCorrectWord = false;
+      document.getElementById('start-button').style.display = 'block'; // Mostrar el botón nuevamente
+      document.getElementById('canvas-container').style.display = 'none'; // Esconder el canvas nuevamente
     }
 
     // Obtener los resultados de la clasificación
@@ -82,9 +141,27 @@ description: "Mini proyecto de funcionalidades basicas para nuestra aplicacion d
         return;
       }
 
-      // Verificar si la confianza supera el umbral y no es ruido de fondo
-      if (results[0].confidence >= confidenceThreshold && words.includes(results[0].label)) {
+      // Verificar si la confianza supera el umbral y es la palabra esperada
+      if (results[0].confidence >= confidenceThreshold && results[0].label === words[currentLevel]) {
         predictedWord = results[0].label;
+
+        // Mostrar la palabra correcta en verde por 1 segundo
+        showCorrectWord = true;
+        clearTimeout(correctWordTimer);
+        correctWordTimer = setTimeout(() => {
+          showCorrectWord = false;
+          predictedWord = "";
+
+          // Avanzar al siguiente nivel
+          currentLevel++;
+          clearInterval(timerInterval); // Detener el temporizador
+          if (currentLevel >= words.length) {
+            alert("¡Felicidades! Has completado todas las fases.");
+            p.resetGame(); // Reiniciar el juego después de ganar
+          } else {
+            p.startTimer(); // Reiniciar el temporizador para el siguiente nivel
+          }
+        }, 1000); // Mostrar durante 1 segundo
       }
     }
   };
